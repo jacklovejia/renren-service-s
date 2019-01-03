@@ -53,6 +53,7 @@ public class RRExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public R handleException(Exception e){
 		logger.error(e.getMessage(), e);
+		// 这里有一个短信发送
 		return R.error();
 	}
 }
