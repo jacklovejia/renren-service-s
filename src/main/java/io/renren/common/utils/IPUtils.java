@@ -5,6 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 /**
  * IP地址
@@ -53,6 +57,38 @@ public class IPUtils {
 //		}
         
         return ip;
+    }
+
+
+    /**
+     * 获取本机IP地址
+     *
+     * @return IP地址
+     */
+    public static String getLocalIP() {
+        try {
+            Enumeration allNetInterfaces = NetworkInterface.getNetworkInterfaces();
+            InetAddress ip;
+            while (allNetInterfaces.hasMoreElements())
+            {
+                NetworkInterface netInterface = (NetworkInterface) allNetInterfaces.nextElement();
+                Enumeration addresses = netInterface.getInetAddresses();
+                while (addresses.hasMoreElements())
+                {
+                    ip = (InetAddress) addresses.nextElement();
+                    if (ip != null && ip instanceof Inet4Address)
+                    {
+                        String hostAddress = ip.getHostAddress();
+                        if (hostAddress != null && ! hostAddress.equals("127.0.0.1"))
+                            return ip.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("getLocalIP", e);
+        }
+
+        return "127.0.0.1";
     }
 	
 }

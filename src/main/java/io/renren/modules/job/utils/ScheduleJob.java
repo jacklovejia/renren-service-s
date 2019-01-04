@@ -16,6 +16,7 @@
 
 package io.renren.modules.job.utils;
 
+import io.renren.common.utils.IPUtils;
 import io.renren.modules.job.entity.ScheduleJobEntity;
 import io.renren.modules.job.entity.ScheduleJobLogEntity;
 import io.renren.modules.job.service.ScheduleJobLogService;
@@ -56,6 +57,8 @@ public class ScheduleJob extends QuartzJobBean {
         log.setJobId(scheduleJob.getJobId());
         log.setBeanName(scheduleJob.getBeanName());
         log.setMethodName(scheduleJob.getMethodName());
+		String localIP = IPUtils.getLocalIP();
+		log.setIpAddress(localIP);
         log.setParams(scheduleJob.getParams());
         log.setCreateTime(new Date());
         
@@ -65,7 +68,8 @@ public class ScheduleJob extends QuartzJobBean {
         try {
             //执行任务
         	logger.info("任务准备执行，任务ID：" + scheduleJob.getJobId());
-            ScheduleRunnable task = new ScheduleRunnable(scheduleJob.getBeanName(),
+
+			ScheduleRunnable task = new ScheduleRunnable(scheduleJob.getBeanName(),
             		scheduleJob.getMethodName(), scheduleJob.getParams());
             Future<?> future = service.submit(task);
             
