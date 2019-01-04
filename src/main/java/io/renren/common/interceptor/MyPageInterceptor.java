@@ -1,94 +1,71 @@
 package io.renren.common.interceptor;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Map;
+import java.util.Properties;
+
+import io.renren.common.utils.MyPage;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
 import org.apache.ibatis.executor.statement.StatementHandler;
+import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.plugin.*;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Plugin;
+import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.reflection.DefaultReflectorFactory;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
-import java.sql.Connection;
-import java.util.Map;
-import java.util.Properties;
-@Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class})})
+/**
+ * 自定义分页插件
+ */
+@Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})})
 public class MyPageInterceptor implements Interceptor {
-
-    //每页显示的条目数
-    private int limit;
-    //当前现实的页数
-    private int currPage;
-    //数据库类型
-    private String dbType;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        //获取StatementHandler，默认是RoutingStatementHandler
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
-        //获取statementHandler包装类
-        MetaObject MetaObjectHandler = SystemMetaObject.forObject(statementHandler);
-
-        //分离代理对象链
-        while (MetaObjectHandler.hasGetter("h")) {
-            Object obj = MetaObjectHandler.getValue("h");
-            MetaObjectHandler = SystemMetaObject.forObject(obj);
+        MetaObject metaObject = MetaObject.forObject(statementHandler, SystemMetaObject.DEFAULT_OBJECT_FACTORY, SystemMetaObject.DEFAULT_OBJECT_WRAPPER_FACTORY, new DefaultReflectorFactory());
+        MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
+        //通过MetaObject元数据取得方法名id：com.XXX.queryMessageListByPage
+        String id = mappedStatement.getId();
+        //匹配在mybatis中定义的与分页有关的查询id
+        if (id.matches(".+ByPage$")) {
+            //BoundSql中有原始的sql语句和对应的查询参数
+            BoundSql boundSql = statementHandler.getBoundSql();
+            Map<String, Object> params = (Map<String, Object>) boundSql.getParameterObject();
+            MyPage page = (MyPage) params.get("myPage");
+            String sql = boundSql.getSql();
+            String countSql = "select count(*)from (" + sql + ")a";
+            Connection connection = (Connection) invocation.getArgs()[0];
+            PreparedStatement countStatement = connection.prepareStatement(countSql);
+            ParameterHandler parameterHandler = (ParameterHandler) metaObject.getValue("delegate.parameterHandler");
+            parameterHandler.setParameters(countStatement);
+            ResultSet rs = countStatement.executeQuery();
+            if (rs.next()) {
+                //为什么是getInt（1）? 因为数据表的列是从1开始计数
+                 page.setTotalCount(rs.getInt(1));
+                 System.out.println("拦截器得知page的记录总数为：" + page.getTotalCount());
+            }
+            String pageSql = sql + " limit " + page.getDbIndex() + "," + page.getDbNumber();
+            metaObject.setValue("delegate.boundSql.sql", pageSql);
         }
-
-        while (MetaObjectHandler.hasGetter("target")) {
-            Object obj = MetaObjectHandler.getValue("target");
-            MetaObjectHandler = SystemMetaObject.forObject(obj);
-        }
-
-        //获取连接对象
-        //Connection connection = (Connection) invocation.getArgs()[0];
-
-        //object.getValue("delegate");  获取StatementHandler的实现类
-
-        //获取查询接口映射的相关信息
-        MappedStatement mappedStatement = (MappedStatement) MetaObjectHandler.getValue("delegate.mappedStatement");
-        String mapId = mappedStatement.getId();
-
-        //statementHandler.getBoundSql().getParameterObject();
-
-        //拦截以.ByPage结尾的请求，分页功能的统一实现
-        if (mapId.matches(".+ByPage$")) {
-            //获取进行数据库操作时管理参数的handler
-            ParameterHandler parameterHandler = (ParameterHandler) MetaObjectHandler.getValue("delegate.parameterHandler");
-            //获取请求时的参数
-            Map<String, Object> paraObject = (Map<String, Object>) parameterHandler.getParameterObject();
-            //也可以这样获取
-            //paraObject = (Map<String, Object>) statementHandler.getBoundSql().getParameterObject();
-
-            //参数名称和在service中设置到map中的名称一致
-            currPage = (int) paraObject.get("currPage");
-            limit = (int) paraObject.get("limit");
-
-            String sql = (String) MetaObjectHandler.getValue("delegate.boundSql.sql");
-            //也可以通过statementHandler直接获取
-            //sql = statementHandler.getBoundSql().getSql();
-
-            //构建分页功能的sql语句
-            String limitSql;
-            sql = sql.trim();
-            limitSql = sql + " limit " + (currPage - 1) * limit + "," + limit;
-
-            //将构建完成的分页sql语句赋值个体'delegate.boundSql.sql'，偷天换日
-            MetaObjectHandler.setValue("delegate.boundSql.sql", limitSql);
-        }
-        //调用原对象的方法，进入责任链的下一级
         return invocation.proceed();
     }
 
     @Override
     public Object plugin(Object target) {
-        // 生成object对象的动态代理对象
+        // 如果将拦截器类比喻为代购票的公司，那this就是代购业务员（进入方法前是无代理购票能力业务员，进入后成为有代理能力的业务员）
+        // 通过注解获取拦截目标的信息，如果不符合拦截要求就返回原目标，如果符合则使用动态代理生成代理对象
         return Plugin.wrap(target, this);
     }
 
     @Override
     public void setProperties(Properties properties) {
-    //  如果项目中分页的pageSize是统一的，也可以在这里统一配置和获取，这样就不用每次请求都传递pageSize参数了。参数是在配置拦截器时配置的。
-        String limit1 = properties.getProperty("limit", "10");
-        this.limit = Integer.valueOf(limit1);
-        this.dbType = properties.getProperty("dbType", "mysql");
+
     }
 }
