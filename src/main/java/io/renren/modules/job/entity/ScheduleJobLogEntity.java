@@ -1,19 +1,3 @@
-/**
- * Copyright 2018 人人开源 http://www.renren.io
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package io.renren.modules.job.entity;
 
 import com.baomidou.mybatisplus.annotations.TableId;
@@ -25,129 +9,174 @@ import java.util.Date;
 /**
  * 定时任务日志
  *
- * @author Mark sunlightcs@gmail.com
- * @since 1.2.0 2016-11-28
+ * @author baihe
+ * @email sunlightcs@gmail.com
+ * @date 2019-01-04 17:18:32
  */
 @TableName("schedule_job_log")
 public class ScheduleJobLogEntity implements Serializable {
-	private static final long serialVersionUID = 1L;
-	
-	/**
-	 * 日志id
-	 */
-	@TableId
-	private Long logId;
-	
-	/**
-	 * 任务id
-	 */
-	private Long jobId;
-	
-	/**
-	 * spring bean名称
-	 */
-	private String beanName;
-	
-	/**
-	 * 方法名
-	 */
-	private String methodName;
-	
-	/**
-	 * 参数
-	 */
-	private String params;
-	
-	/**
-	 * 任务状态    0：成功    1：失败
-	 */
-	private Integer status;
-	
-	/**
-	 * 失败信息
-	 */
-	private String error;
-	
-	/**
-	 * 耗时(单位：毫秒)
-	 */
-	private Integer times;
-	
-	/**
-	 * 创建时间
-	 */
-	private Date createTime;
+    private static final long serialVersionUID = 1L;
 
-	public Long getLogId() {
-		return logId;
-	}
+    /**
+     * 任务日志id
+     */
+    @TableId
+    private Long logId;
+    /**
+     * 任务id
+     */
+    private Long jobId;
+    /**
+     * spring bean名称
+     */
+    private String beanName;
+    /**
+     * 方法名
+     */
+    private String methodName;
+    /**
+     * 参数
+     */
+    private String params;
+    /**
+     * 任务状态    0：成功    1：失败
+     */
+    private Integer status;
+    /**
+     * 运行机器IP
+     */
+    private String ipAddress;
+    /**
+     * 失败信息
+     */
+    private String error;
+    /**
+     * 耗时(单位：毫秒)
+     */
+    private Integer times;
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 
-	public void setLogId(Long logId) {
-		this.logId = logId;
-	}
-
-	public Long getJobId() {
-		return jobId;
-	}
-
-	public void setJobId(Long jobId) {
-		this.jobId = jobId;
-	}
-
-	public String getBeanName() {
-		return beanName;
-	}
-
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
-
-	public String getMethodName() {
-		return methodName;
-	}
-
-	public void setMethodName(String methodName) {
-		this.methodName = methodName;
-	}
-
-	public String getParams() {
-		return params;
-	}
-
-	public void setParams(String params) {
-		this.params = params;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
-
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
-
-	public String getError() {
-		return error;
-	}
-
-	public void setError(String error) {
-		this.error = error;
-	}
-
-	public Integer getTimes() {
-		return times;
-	}
-
-	public void setTimes(Integer times) {
-		this.times = times;
-	}
-
-	public Date getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(Date createTime) {
-		this.createTime = createTime;
-	}
-	
+    /**
+     * 设置：任务日志id
+     */
+    public void setLogId(Long logId) {
+        this.logId = logId;
+    }
+    /**
+     * 获取：任务日志id
+     */
+    public Long getLogId() {
+        return logId;
+    }
+    /**
+     * 设置：任务id
+     */
+    public void setJobId(Long jobId) {
+        this.jobId = jobId;
+    }
+    /**
+     * 获取：任务id
+     */
+    public Long getJobId() {
+        return jobId;
+    }
+    /**
+     * 设置：spring bean名称
+     */
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
+    /**
+     * 获取：spring bean名称
+     */
+    public String getBeanName() {
+        return beanName;
+    }
+    /**
+     * 设置：方法名
+     */
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+    /**
+     * 获取：方法名
+     */
+    public String getMethodName() {
+        return methodName;
+    }
+    /**
+     * 设置：参数
+     */
+    public void setParams(String params) {
+        this.params = params;
+    }
+    /**
+     * 获取：参数
+     */
+    public String getParams() {
+        return params;
+    }
+    /**
+     * 设置：任务状态    0：成功    1：失败
+     */
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+    /**
+     * 获取：任务状态    0：成功    1：失败
+     */
+    public Integer getStatus() {
+        return status;
+    }
+    /**
+     * 设置：运行机器IP
+     */
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+    /**
+     * 获取：运行机器IP
+     */
+    public String getIpAddress() {
+        return ipAddress;
+    }
+    /**
+     * 设置：失败信息
+     */
+    public void setError(String error) {
+        this.error = error;
+    }
+    /**
+     * 获取：失败信息
+     */
+    public String getError() {
+        return error;
+    }
+    /**
+     * 设置：耗时(单位：毫秒)
+     */
+    public void setTimes(Integer times) {
+        this.times = times;
+    }
+    /**
+     * 获取：耗时(单位：毫秒)
+     */
+    public Integer getTimes() {
+        return times;
+    }
+    /**
+     * 设置：创建时间
+     */
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+    /**
+     * 获取：创建时间
+     */
+    public Date getCreateTime() {
+        return createTime;
+    }
 }
